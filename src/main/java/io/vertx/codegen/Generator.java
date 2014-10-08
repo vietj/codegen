@@ -16,6 +16,7 @@ package io.vertx.codegen;
  * You may elect to redistribute this code under either of these licenses.
  */
 
+import io.vertx.codegen.annotations.Extension;
 import io.vertx.codegen.annotations.GenModule;
 import io.vertx.codegen.annotations.Options;
 import io.vertx.codegen.annotations.VertxGen;
@@ -87,7 +88,7 @@ public class Generator {
     }
     if (template == null) {
       template = new Template(templateName);
-      template.setOptions(options);
+      template.getOptions().putAll(options);
     }
     template.apply(model, outputFileName);
   }
@@ -140,12 +141,16 @@ public class Generator {
   }
 
   public ClassModel generateModel(Class c, Class... rest) throws Exception {
+    return generateModel(null, c, rest);
+  }
+
+  public ClassModel generateModel(String lang, Class c, Class... rest) throws Exception {
     log.info("Generating model for class " + c);
     ArrayList<Class> types = new ArrayList<>();
     types.add(c);
     Collections.addAll(types, rest);
     String className = c.getCanonicalName();
-    MyProcessor<ClassModel> processor = new MyProcessor<>(codegen -> codegen.getClassModel(className));
+    MyProcessor<ClassModel> processor = new MyProcessor<>(codegen -> codegen.getClassModel(lang, className));
     Compiler compiler = new Compiler(processor, collector);
     compiler.compile(types);
     if (processor.result == null) {
@@ -187,6 +192,7 @@ public class Generator {
       set.add(VertxGen.class.getCanonicalName());
       set.add(Options.class.getCanonicalName());
       set.add(GenModule.class.getCanonicalName());
+      set.add(Extension.class.getCanonicalName());
       return set;
     }
 

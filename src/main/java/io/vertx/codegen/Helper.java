@@ -448,4 +448,79 @@ public class Helper {
     }
     return null;
   }
+
+  /**
+   * Resolve a type parameter element <code>typeParam</code> to its type for the <code>resolving</code>
+   * declared type, the resolution mechanism starts from the <code>resolving</code> type up to the declared
+   * type declaing the type parameter and substitutes type parameter by its corresponding type argument.<p>
+   *
+   * For instance:<p>
+   *
+   * <code><pre>
+   *   public class Bar&lt;T&gt; {}
+   *   public class Foo&lt;U&gt; extends Bar&lt;List&lt;U&gt;&gt; {}
+   *   public class Juu extends Foo&lt;String&gt; {}
+   * </pre></code>
+   *
+   * Resolve the type parameter <code>&lt;T&gt;</code> of <code>Bar</code> to <code>List&lt;String&gt;</code>
+   * for the <code>Juu</code> class.
+   *
+   * @param typeUtils type utils
+   * @param typeParam the type param to resolve
+   * @param resolving the resolving type
+   * @return
+   */
+  public static TypeMirror resolveTypeParameter(Types typeUtils, TypeParameterElement typeParam, DeclaredType resolving) {
+    TypeMirror erased = typeUtils.erasure(typeParam.getGenericElement().asType());
+    TypeMirror erasedContext = typeUtils.erasure(resolving);
+    if (typeUtils.isSameType(erased, erasedContext)) {
+      return typeParam.asType();
+    } else if (typeUtils.isSubtype(erasedContext, erased)) {
+      for (TypeMirror superType : typeUtils.directSupertypes(resolving)) {
+        DeclaredType superType1 = (DeclaredType) superType;
+        TypeMirror abc = resolveTypeParameter(typeUtils, typeParam, superType1);
+        if (abc != null) {
+          if (abc.getKind() == TypeKind.TYPEVAR) {
+            return typeUtils.asMemberOf(resolving, ((TypeVariable) abc).asElement());
+          } else {
+            return abc;
+          }
+        }
+      }
+      return null;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Resolve a type given a list of a map of type variable aliases. For instance with the alias
+   *   <code>{ &lt;T&gt; : String }</code> the type <code>List&lt;T&gt;</code> is resolved to
+   *   <code>List&lt;String&gt;</code>.
+   *
+   * @param typeUtils the type utils
+   * @param type the type to resolve
+   * @param aliases the aliases
+   * @return the resolved type
+   */
+  public static TypeMirror resolveType(Types typeUtils, TypeMirror type, Map<TypeVariable, TypeMirror> aliases) {
+    if (type instanceof TypeVariable) {
+      TypeMirror alias = aliases.get(type);
+      if (alias != null) {
+        return alias;
+      }
+    } else if (type instanceof DeclaredType) {
+      DeclaredType declaredType = (DeclaredType) type;
+      List<? extends TypeMirror> typeArgs = declaredType.getTypeArguments();
+      if (typeArgs.size() > 0) {
+        TypeElement typeElt = (TypeElement) declaredType.asElement();
+        TypeMirror[] resolvedTypeArgs = new TypeMirror[typeArgs.size()];
+        for (int i = 0; i < typeArgs.size();i++) {
+          resolvedTypeArgs[i] = resolveType(typeUtils, typeArgs.get(i), aliases);
+        }
+        return typeUtils.getDeclaredType(typeElt, resolvedTypeArgs);
+      }
+    }
+    return type;
+  }
 }

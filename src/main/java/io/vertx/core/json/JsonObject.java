@@ -1,5 +1,7 @@
 package io.vertx.core.json;
 
+import java.util.Set;
+
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
@@ -11,6 +13,8 @@ public class JsonObject  {
   public JsonObject() {
   }
 
+  public Set<String> getFieldNames() { throw new UnsupportedOperationException(); }
+  public <T> T getField(String fieldName) { throw new UnsupportedOperationException(); }
   public JsonObject getObject(String name) { throw new UnsupportedOperationException(); }
   public String getString(String name) { throw new UnsupportedOperationException(); }
   public String getString(String name, String def) { throw new UnsupportedOperationException(); }

@@ -1,5 +1,6 @@
 package io.vertx.codegen;
 
+import io.vertx.codegen.annotations.Extension;
 import io.vertx.codegen.annotations.GenModule;
 import io.vertx.codegen.annotations.Options;
 import io.vertx.codegen.annotations.VertxGen;
@@ -8,13 +9,19 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -22,6 +29,7 @@ import java.util.stream.Stream;
  */
 public class CodeGen {
 
+  private final List<ExecutableElement> extensions;
   private final HashMap<String, TypeElement> options = new HashMap<>();
   private final HashMap<String, TypeElement> classes = new HashMap<>();
   private final HashMap<String, PackageElement> modules = new HashMap<>();
@@ -44,13 +52,16 @@ public class CodeGen {
       stream().
       map(element -> (PackageElement) element).
       forEach(element -> modules.put(element.getQualifiedName().toString(), element));
+    extensions = round.getElementsAnnotatedWith(Extension.class).
+        stream().
+        map(element -> (ExecutableElement) element).collect(Collectors.toList());
   }
 
-  public Stream<Map.Entry<? extends Element, ? extends Model>> getModels() {
+  public Stream<Map.Entry<? extends Element, ? extends Model>> getModels(String lang) {
     return Stream.concat(getOptionsModels(),
       Stream.concat(getModuleModels(),
         Stream.concat(getPackageModels(),
-          getClassModels())));
+          getClassModels(lang))));
   }
 
   private static class ModelEntry<E extends Element, M extends Model> implements Map.Entry<E, M> {
@@ -82,8 +93,8 @@ public class CodeGen {
     }
   }
 
-  public Stream<Map.Entry<TypeElement, ClassModel>> getClassModels() {
-    return classes.entrySet().stream().map(entry -> new ModelEntry<>(entry.getValue(), () -> getClassModel(entry.getKey())));
+  public Stream<Map.Entry<TypeElement, ClassModel>> getClassModels(String lang) {
+    return classes.entrySet().stream().map(entry -> new ModelEntry<>(entry.getValue(), () -> getClassModel(lang, entry.getKey())));
   }
 
   public Stream<Map.Entry<PackageElement, PackageModel>> getPackageModels() {
@@ -108,13 +119,23 @@ public class CodeGen {
     return getPackageModels().filter(pkg -> pkg.getValue().getFqn().equals(fqn)).findFirst().map(Map.Entry::getValue).orElse(null);
   }
 
-  public ClassModel getClassModel(String fqcn) {
+  public ClassModel getClassModel(String lang, String fqcn) {
     TypeElement element = classes.get(fqcn);
     if (element == null) {
       throw new IllegalArgumentException("Source for " + fqcn + " not found");
     } else {
       ClassModel model = new ClassModel(messager, classes, elementUtils, typeUtils, element);
-      model.process();
+      for (ExecutableElement extensionElt : extensions) {
+        List<? extends VariableElement> parameters = extensionElt.getParameters();
+        if (parameters.size() > 0) {
+          ExecutableType xt = (ExecutableType) extensionElt.asType();
+          TypeMirror type = xt.getParameterTypes().get(0);
+          if (typeUtils.isSubtype(typeUtils.erasure(element.asType()), typeUtils.erasure(type))) {
+            model.addExtension(extensionElt);
+          }
+        }
+      }
+      model.process(lang);
       return model;
     }
   }

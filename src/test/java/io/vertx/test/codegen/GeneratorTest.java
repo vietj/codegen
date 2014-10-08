@@ -26,6 +26,7 @@ import io.vertx.test.codegen.testapi.GenericInterfaceWithUpperBound;
 import io.vertx.test.codegen.testapi.InterfaceWithCacheReturnMethods;
 import io.vertx.test.codegen.testapi.InterfaceWithComments;
 import io.vertx.test.codegen.testapi.InterfaceWithDefaultMethod;
+import io.vertx.test.codegen.testapi.InterfaceWithField;
 import io.vertx.test.codegen.testapi.InterfaceWithGetterMethods;
 import io.vertx.test.codegen.testapi.InterfaceWithIgnoredMethods;
 import io.vertx.test.codegen.testapi.InterfaceWithIndexSetterGetterMethods;
@@ -100,6 +101,15 @@ import io.vertx.test.codegen.testapi.VertxGenClass1;
 import io.vertx.test.codegen.testapi.VertxGenClass2;
 import io.vertx.test.codegen.testapi.VertxGenInterface1;
 import io.vertx.test.codegen.testapi.VertxGenInterface2;
+import io.vertx.test.codegen.testapi.extension.Extended;
+import io.vertx.test.codegen.testapi.extension.ExtendedMethods;
+import io.vertx.test.codegen.testapi.extension.ExtendedSubclass;
+import io.vertx.test.codegen.testapi.extension.SameSignatureGenericExtension;
+import io.vertx.test.codegen.testapi.extension.SameSignatureInterface;
+import io.vertx.test.codegen.testapi.extension.SameSignatureExtension;
+import io.vertx.test.codegen.testapi.extension.NativeExtension;
+import io.vertx.test.codegen.testapi.extension.GenericInterfaceMethods;
+import io.vertx.test.codegen.testapi.extension.SameSignatureStringInterface;
 import io.vertx.test.codegen.testapi.fluent.AbstractInterfaceWithFluentMethods;
 import io.vertx.test.codegen.testapi.fluent.ConcreteInterfaceWithFluentMethods;
 import io.vertx.test.codegen.testapi.fluent.FluentMethodOverrideWithSuperType;
@@ -109,15 +119,22 @@ import io.vertx.test.codegen.testapi.fluent.FluentMethodWithIllegalReturn;
 import io.vertx.test.codegen.testapi.fluent.FluentMethodWithVoidReturn;
 import io.vertx.test.codegen.testapi.fluent.InterfaceWithFluentMethodOverrideFromAbstract;
 import io.vertx.test.codegen.testapi.fluent.InterfaceWithFluentMethodOverrideFromConcrete;
+import io.vertx.test.codegen.testapi.nativemethod.MethodWithNativeImplementations;
+import io.vertx.test.codegen.testapi.nativemethod.MethodWithNativeParamType;
+import io.vertx.test.codegen.testapi.nativemethod.MethodWithNativeReturnType;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.function.Consumer;
 
 import static io.vertx.test.codegen.Utils.*;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -1434,6 +1451,156 @@ public class GeneratorTest {
     } catch (GenException e) {
       // pass
     }
+  }
+
+  @Test
+  public void testNativeImplementations() throws Exception {
+    String[] langs = {null, "java", "js"};
+    String[] expected = {null, "\n   somejava\n ", "\n   somejs\n "};
+    for (int i = 0;i < langs.length;i++) {
+      ClassModel model = null;
+      try {
+        model = new Generator().generateModel(langs[i], MethodWithNativeImplementations.class);
+      } catch (GenException e) {
+        assertNull(expected[i]);
+        return;
+      }
+      assertEquals(1, model.getMethods().size());
+      MethodInfo method = model.getMethods().get(0);
+      assertEquals("method", method.getName());
+      assertTrue(method.isNative());
+      assertEquals(expected[i], method.getImplementation());
+    }
+  }
+
+  @Test
+  public void testNativeReturnType() throws Exception {
+    ClassModel model = new Generator().generateModel("java", MethodWithNativeReturnType.class);
+    assertEquals(1, model.getMethods().size());
+    MethodInfo method = model.getMethods().get(0);
+    assertEquals("method", method.getName());
+    assertTrue(method.isNative());
+    assertEquals(TypeInfo.create(Locale.class), method.getReturnType());
+    assertEquals(Collections.<ParamInfo>emptyList(), method.getParams());
+  }
+
+  @Test
+  public void testNativeParamType() throws Exception {
+    ClassModel model = new Generator().generateModel("java", MethodWithNativeParamType.class);
+    assertEquals(1, model.getMethods().size());
+    MethodInfo method = model.getMethods().get(0);
+    assertEquals("method", method.getName());
+    assertTrue(method.isNative());
+    assertEquals(TypeInfo.Void.INSTANCE, method.getReturnType());
+    assertEquals(1, method.getParams().size());
+    assertEquals(TypeInfo.create(Locale.class), method.getParams().get(0).getType());
+  }
+
+  @Test
+  public void testExtensionMethods() throws Exception {
+    Class[] testedClasses = {Extended.class, ExtendedSubclass.class};
+    for (Class testClass : testedClasses) {
+      ClassModel model = new Generator().generateModel(testClass, ExtendedMethods.class);
+      assertEquals(1, model.getMethods().size());
+      MethodInfo emptyParametersMethod = model.getMethodMap().get("emptyParameters").get(0);
+      assertEquals("emptyParameters", emptyParametersMethod.getName());
+      assertEquals(Collections.<String>emptyList(), emptyParametersMethod.getTypeParams());
+      assertEquals(0, emptyParametersMethod.getParams().size());
+    }
+  }
+
+  @Test
+  public void testSameSignatureExtension() throws Exception {
+    ClassModel model = new Generator().generateModel(SameSignatureInterface.class, SameSignatureExtension.class);
+    assertEquals(1, model.getMethods().size());
+    MethodInfo method = model.getMethods().get(0);
+    List<ParamInfo> params = method.getParams();
+    assertEquals(1, params.size());
+    assertEquals(TypeInfo.create(String.class), params.get(0).getType());
+  }
+
+  @Test
+  public void testSameSignatureGenericExtension() throws Exception {
+    ClassModel model = new Generator().generateModel(SameSignatureStringInterface.class, SameSignatureGenericExtension.class);
+    assertEquals(1, model.getMethods().size());
+    MethodInfo method = model.getMethods().get(0);
+    List<ParamInfo> params = method.getParams();
+    assertEquals(1, params.size());
+    assertEquals(TypeInfo.create(String.class), params.get(0).getType());
+  }
+
+  @Test
+  public void testGenericExtensionMethods() throws Exception {
+    Class[] testedClasses = {InterfaceWithParameterizedDeclaredSupertype.class, GenericInterface.class};
+    int[] expectedNumMethods = {7, 9};
+    String[] expectedType = {"java.lang.String", "T"};
+    for (int i = 0;i < testedClasses.length;i++) {
+      ClassModel model = new Generator().generateModel(testedClasses[i], GenericInterfaceMethods.class);
+      assertEquals(expectedNumMethods[i], model.getMethods().size());
+      MethodInfo genericReceiverMethod = model.getMethodMap().get("genericReceiver").get(0);
+      assertEquals("genericReceiver", genericReceiverMethod.getName());
+      assertEquals(Collections.<String>emptyList(), genericReceiverMethod.getTypeParams());
+      assertEquals(0, genericReceiverMethod.getParams().size());
+      MethodInfo typeVariableParameterBoundToReceiverMethod = model.getMethodMap().get("typeVariableParameterBoundToReceiver").get(0);
+      assertEquals("typeVariableParameterBoundToReceiver", typeVariableParameterBoundToReceiverMethod.getName());
+      assertEquals(Collections.<String>emptyList(), typeVariableParameterBoundToReceiverMethod.getTypeParams());
+      assertEquals(1, typeVariableParameterBoundToReceiverMethod.getParams().size());
+      assertEquals(expectedType[i], typeVariableParameterBoundToReceiverMethod.getParams().get(0).getType().getName());
+      MethodInfo typeVariableReturnTypeBoundToReceiverMethod = model.getMethodMap().get("typeVariableReturnTypeBoundToReceiver").get(0);
+      assertEquals("typeVariableReturnTypeBoundToReceiver", typeVariableReturnTypeBoundToReceiverMethod.getName());
+      assertEquals(Collections.<String>emptyList(), typeVariableReturnTypeBoundToReceiverMethod.getTypeParams());
+      assertEquals(0, typeVariableReturnTypeBoundToReceiverMethod.getParams().size());
+      assertEquals(expectedType[i], typeVariableReturnTypeBoundToReceiverMethod.getReturnType().getName());
+      MethodInfo typeVariableParameterMethod = model.getMethodMap().get("typeVariableParameter").get(0);
+      assertEquals("typeVariableParameter", typeVariableParameterMethod.getName());
+      assertEquals(Collections.singletonList("T"), typeVariableParameterMethod.getTypeParams());
+      assertEquals(1, typeVariableParameterMethod.getParams().size());
+      assertEquals("T", typeVariableParameterMethod.getParams().get(0).getType().getName());
+      MethodInfo typeVariableReturnTypeMethod = model.getMethodMap().get("typeVariableReturnType").get(0);
+      assertEquals("typeVariableReturnType", typeVariableReturnTypeMethod.getName());
+      assertEquals(Collections.singletonList("T"), typeVariableReturnTypeMethod.getTypeParams());
+      assertEquals(0, typeVariableReturnTypeMethod.getParams().size());
+      assertEquals("T", typeVariableReturnTypeMethod.getReturnType().getName());
+      MethodInfo genericParameterMethod = model.getMethodMap().get("genericParameter").get(0);
+      assertEquals("genericParameter", genericParameterMethod.getName());
+      assertEquals(Collections.<String>emptyList(), genericParameterMethod.getTypeParams());
+      assertEquals(1, genericParameterMethod.getParams().size());
+      assertEquals("io.vertx.core.Handler<" +  expectedType[i] + ">", genericParameterMethod.getParams().get(0).getType().getName());
+      MethodInfo genericReturnTypeMethod = model.getMethodMap().get("genericReturnType").get(0);
+      assertEquals("genericReturnType", genericReturnTypeMethod.getName());
+      assertEquals(Collections.<String>emptyList(), genericReturnTypeMethod.getTypeParams());
+      assertEquals(0, genericReturnTypeMethod.getParams().size());
+      assertEquals("io.vertx.test.codegen.testapi.GenericInterface<" + expectedType[i] + ">", genericReturnTypeMethod.getReturnType().getName());
+    }
+
+  }
+
+  @Test
+  public void testNativeExtensionMethod() throws Exception {
+    String[] langs = {null, "java", "js"};
+    String[] expected = {null, "\n   somejava\n ", "\n   somejs\n "};
+    for (int i = 0;i < langs.length;i++) {
+      ClassModel model;
+      try {
+        model = new Generator().generateModel(langs[i], Extended.class, NativeExtension.class);
+      } catch (GenException e) {
+        assertNull(expected[i]);
+        return;
+      }
+      assertEquals(1, model.getMethods().size());
+      MethodInfo method = model.getMethods().get(0);
+      assertEquals(TypeInfo.create(Locale.class), method.getReturnType());
+      assertEquals("nativeExtensionMethod", method.getName());
+      assertEquals(1, method.getParams().size());
+      assertEquals(TypeInfo.create(ResourceBundle.class), method.getParams().get(0).getType());
+      assertTrue(method.isNative());
+      assertEquals(expected[i], method.getImplementation());
+    }
+  }
+
+  @Test
+  public void testStaticFinalField() throws Exception {
+    ClassModel model = new Generator().generateModel(InterfaceWithField.class);
   }
 
 /*

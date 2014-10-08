@@ -43,9 +43,8 @@ public class Template {
     this(resolveURL(name));
   }
 
-  public void setOptions(Map<String, String> options) {
-    this.options.clear();
-    this.options.putAll(options);
+  public HashMap<String, String> getOptions() {
+    return options;
   }
 
   public static CompiledTemplate loadCompiled(InputStream source) {

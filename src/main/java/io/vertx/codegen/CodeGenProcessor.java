@@ -5,7 +5,6 @@ import io.vertx.core.json.JsonObject;
 import org.mvel2.MVEL;
 
 import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.element.*;
@@ -56,8 +55,9 @@ public class CodeGenProcessor extends AbstractProcessor {
         try (Scanner scanner = new Scanner(descriptor.openStream(), "UTF-8").useDelimiter("\\A")) {
           String s = scanner.next();
           JsonObject obj = new JsonObject(s);
-          String name = obj.getString("name");
+          String lang = obj.getString("name");
           JsonArray generatorsCfg = obj.getArray("generators");
+          JsonObject optionsCfg = obj.getObject("options");
           for (Object o : generatorsCfg) {
             JsonObject generator = (JsonObject) o;
             String kind = generator.getString("kind");
@@ -65,10 +65,15 @@ public class CodeGenProcessor extends AbstractProcessor {
             String fileName = generator.getString("fileName");
             Serializable fileNameExpression = MVEL.compileExpression(fileName);
             Template compiledTemplate = new Template(templateFileName);
-            compiledTemplate.setOptions(processingEnv.getOptions());
-            codeGenerators.put(name, new CodeGenerator(kind, fileNameExpression, compiledTemplate));
-            log.info("Loaded " + name + " code generator");
+            if (optionsCfg != null) {
+              for (String optionName : optionsCfg.getFieldNames()) {
+                compiledTemplate.getOptions().put(optionName, optionsCfg.getField(optionName).toString());
+              }
+            }
+            compiledTemplate.getOptions().putAll(processingEnv.getOptions());
+            codeGenerators.put(lang, new CodeGenerator(lang, kind, fileNameExpression, compiledTemplate));
           }
+          log.info("Loaded " + lang + " code generator");
         } catch (Exception e) {
           String msg = "Could not load code generator " + descriptor;
           log.log(Level.SEVERE, msg, e);
@@ -92,7 +97,8 @@ public class CodeGenProcessor extends AbstractProcessor {
           codeGenerators.keySet().retainAll(wanted);
         } else {
           codeGenerators.clear();
-          processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Code generators " + wanted.removeAll(codeGenerators.keySet()) + " not found");
+          wanted.removeAll(codeGenerators.keySet());
+          processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Code generators " + wanted + " not found");
         }
       }
       this.codeGenerators = codeGenerators;
@@ -106,49 +112,50 @@ public class CodeGenProcessor extends AbstractProcessor {
       Collection<CodeGenerator> codeGenerators = getCodeGenerators();
       if (!roundEnv.errorRaised()) {
         CodeGen codegen = new CodeGen(processingEnv, roundEnv);
-
-        // Generate source code
-        codegen.getModels().forEach(entry -> {
-          try {
-            Model model = entry.getValue();
-            if (outputDirectory != null) {
-              Map<String, Object> vars = new HashMap<>();
-              vars.put("helper", new Helper());
-              vars.put("options", processingEnv.getOptions());
-              vars.put("fileSeparator", File.separator);
-              vars.put("fqn", model.getFqn());
-              vars.putAll(model.getVars());
-              for (CodeGenerator codeGenerator : codeGenerators) {
-                if (codeGenerator.kind.equals(model.getKind())) {
-                  String relativeName = (String) MVEL.executeExpression(codeGenerator.fileNameExpression, vars);
-                  if (relativeName != null) {
-                    if (relativeName.endsWith(".java")) {
-                      // Special handling for .java
-                      JavaFileObject target = processingEnv.getFiler().createSourceFile(relativeName.substring(0, relativeName.length() - ".java".length()));
-                      String output = codeGenerator.transformTemplate.render(model);
-                      try (Writer writer = target.openWriter()) {
-                        writer.append(output);
+        codeGenerators.stream().collect(Collectors.groupingBy(gen -> gen.lang)).forEach((lang, generators) -> {
+          codegen.getModels(lang).forEach(entry -> {
+            try {
+              Model model = entry.getValue();
+              // Generate source code
+              for (CodeGenerator generator : generators) {
+                if (outputDirectory != null) {
+                  Map<String, Object> vars = new HashMap<>();
+                  vars.put("helper", new Helper());
+                  vars.put("options", processingEnv.getOptions());
+                  vars.put("fileSeparator", File.separator);
+                  vars.put("fqn", model.getFqn());
+                  vars.putAll(model.getVars());
+                  if (generator.kind.equals(model.getKind())) {
+                    String relativeName = (String) MVEL.executeExpression(generator.fileNameExpression, vars);
+                    if (relativeName != null) {
+                      if (relativeName.endsWith(".java")) {
+                        // Special handling for .java
+                        JavaFileObject target = processingEnv.getFiler().createSourceFile(relativeName.substring(0, relativeName.length() - ".java".length()));
+                        String output = generator.transformTemplate.render(model);
+                        try (Writer writer = target.openWriter()) {
+                          writer.append(output);
+                        }
+                      } else {
+                        File target = new File(outputDirectory, relativeName);
+                        generator.transformTemplate.apply(model, target);
                       }
-                    } else {
-                      File target = new File(outputDirectory, relativeName);
-                      codeGenerator.transformTemplate.apply(model, target);
+                      log.info("Generated model " + model.getFqn() + ": " + relativeName);
                     }
-                    log.info("Generated model " + model.getFqn() + ": " + relativeName);
                   }
+                } else {
+                  log.info("Validated model " + model.getFqn());
                 }
               }
-            } else {
-              log.info("Validated model " + model.getFqn());
+            } catch (GenException e) {
+              String msg = "Could not generate model for " + e.element + ": " + e.msg;
+              log.log(Level.SEVERE, msg, e);
+              processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, msg, e.element);
+            } catch (Exception e) {
+              String msg = "Could not generate element for " + entry.getKey() + ": " + e.getMessage();
+              log.log(Level.SEVERE, msg, e);
+              processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, msg, entry.getKey());
             }
-          } catch (GenException e) {
-            String msg = "Could not generate model for " + e.element + ": " + e.msg;
-            log.log(Level.SEVERE, msg, e);
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, msg, e.element);
-          } catch (Exception e) {
-            String msg = "Could not generate element for " + entry.getKey() + ": " + e.getMessage();
-            log.log(Level.SEVERE, msg, e);
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, msg, entry.getKey());
-          }
+          });
         });
       }
     }
@@ -156,10 +163,12 @@ public class CodeGenProcessor extends AbstractProcessor {
   }
 
   static class CodeGenerator {
+    final String lang;
     final String kind;
     final Serializable fileNameExpression;
     final Template transformTemplate;
-    CodeGenerator(String kind, Serializable fileNameExpression, Template transformTemplate) {
+    CodeGenerator(String lang, String kind, Serializable fileNameExpression, Template transformTemplate) {
+      this.lang = lang;
       this.kind = kind;
       this.fileNameExpression = fileNameExpression;
       this.transformTemplate = transformTemplate;

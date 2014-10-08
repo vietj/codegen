@@ -18,9 +18,11 @@ package io.vertx.codegen;
 
 import javax.lang.model.element.ExecutableElement;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -36,11 +38,14 @@ public class MethodInfo implements Comparable<MethodInfo> {
   List<ParamInfo> params;
   final String comment;
   final boolean staticMethod;
+  final String implementation;
   List<String> typeParams;
   LinkedHashSet<TypeInfo.Class> ownerTypes;
+  final TypeInfo.Class invoker;
 
   public MethodInfo(Set<TypeInfo.Class> ownerTypes, String name, MethodKind kind, TypeInfo returnType, boolean fluent,
-                    boolean cacheReturn, List<ParamInfo> params, String comment, boolean staticMethod, List<String> typeParams) {
+                    boolean cacheReturn, List<ParamInfo> params, String comment, boolean staticMethod, List<String> typeParams,
+                    String implementation, TypeInfo.Class invoker) {
 
 
     this.kind = kind;
@@ -53,6 +58,8 @@ public class MethodInfo implements Comparable<MethodInfo> {
     this.params = params;
     this.typeParams = typeParams;
     this.ownerTypes = new LinkedHashSet<>(ownerTypes);
+    this.implementation = implementation;
+    this.invoker = invoker;
   }
 
   /**
@@ -86,7 +93,20 @@ public class MethodInfo implements Comparable<MethodInfo> {
     return ownerTypes;
   }
 
+  /**
+   * @return the method invoker or null when the type owner can handle the call itself
+   */
+  public TypeInfo.Class getInvoker() {
+    return invoker;
+  }
 
+  public String getImplementation() {
+    return implementation;
+  }
+
+  public boolean isNative() {
+    return implementation != null;
+  }
 
   /**
    * Return true if the provided type is the sole owner of this method, i.e this method
