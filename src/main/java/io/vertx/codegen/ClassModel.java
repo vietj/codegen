@@ -29,6 +29,7 @@ import io.vertx.codegen.type.*;
 import io.vertx.codegen.type.VoidTypeInfo;
 
 import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -76,6 +77,7 @@ public class ClassModel implements Model {
   public static final String JSON_ARRAY = "io.vertx.core.json.JsonArray";
   public static final String VERTX = "io.vertx.core.Vertx";
 
+  protected final ProcessingEnvironment env;
   protected final MethodOverloadChecker methodOverloadChecker;
   protected final Messager messager;
   protected final TypeMirrorFactory typeFactory;
@@ -104,9 +106,11 @@ public class ClassModel implements Model {
   // The methods, grouped by name
   protected Map<String, List<MethodInfo>> methodMap = new LinkedHashMap<>();
 
-  public ClassModel(MethodOverloadChecker methodOverloadChecker,
-                    Messager messager,  Map<String, TypeElement> sources, Elements elementUtils,
+  public ClassModel(ProcessingEnvironment env,
+                    MethodOverloadChecker methodOverloadChecker,
+                    Messager messager, Map<String, TypeElement> sources, Elements elementUtils,
                     Types typeUtils, TypeElement modelElt) {
+    this.env = env;
     this.methodOverloadChecker = methodOverloadChecker;
     this.typeFactory = new TypeMirrorFactory(elementUtils, typeUtils);
     this.docFactory = new Doc.Factory(messager, elementUtils, typeUtils, typeFactory, modelElt);
@@ -637,17 +641,15 @@ public class ClassModel implements Model {
 
     //
     List<Method> reflectMethods;
-    List<ExecutableElement> modelMethods;
+    List<ExecutableElement> modelMethods = new ArrayList<>();
     Method reflectMethod = Helper.getReflectMethod(modelMethod);
     if (reflectMethod != null) {
       reflectMethods = new ArrayList<>();
       reflectMethods.add(reflectMethod);
-      modelMethods = null;
     } else {
       reflectMethods = null;
-      modelMethods = new ArrayList<>();
-      modelMethods.add(modelMethod);
     }
+    modelMethods.add(modelMethod);
 
     // Owner types
     Set<ClassTypeInfo> ownerTypes = new HashSet<>();
@@ -681,9 +683,8 @@ public class ClassModel implements Model {
                 if (overridenMethodRef != null) {
                   reflectMethods.add(overridenMethodRef);
                 }
-              } else {
-                modelMethods.add(overridenMethodElt);
               }
+              modelMethods.add(overridenMethodElt);
               ownerTypes.add(typeFactory.create((DeclaredType) ancestorElt.asType()).getRaw());
             });
       }
@@ -733,13 +734,7 @@ public class ClassModel implements Model {
     }
 
     //
-    TypeUse returnTypeUse;
-    if (reflectMethods != null) {
-      returnTypeUse = TypeUse.createTypeUse(reflectMethods.stream().map(Method::getAnnotatedReturnType).toArray(AnnotatedType[]::new));
-    } else {
-      returnTypeUse = TypeUse.createTypeUse(modelMethods.stream().map(ExecutableElement::getReturnType).toArray(TypeMirror[]::new));
-    }
-
+    TypeUse returnTypeUse = TypeUse.createReturnTypeUse(env,  modelMethods.toArray(new ExecutableElement[modelMethods.size()]));
     ExecutableType methodType = (ExecutableType) typeUtils.asMemberOf((DeclaredType) modelElt.asType(), modelMethod);
     TypeInfo returnType;
     try {
