@@ -1,3 +1,4 @@
+library "vertx-ci-workflow"
 pipeline {
   agent any
   tools {
@@ -12,6 +13,11 @@ pipeline {
         jdk 'OracleJDK 8'
       }
       steps {
+        sayHello 'Joe'
+        sayHello 'Joe'
+        sayHello 'Joe'
+        sayHello 'Joe'
+        sayHello 'Joe'
         sh 'mvn -U -B -Dsurefire.reportNameSuffix=OracleJDK_8 clean deploy -s $MAVEN_SETTINGS_PATH'
         build job: "/vert.x3-core-pipeline/${env.BRANCH_NAME}", wait: false
       }
