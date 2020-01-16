@@ -77,6 +77,7 @@ public class TestDataObject {
   private ZonedDateTime dateTime;
   private URI uri;
   private NoConverterDataObject notConvertibleDataObject;
+  private ApiMappedToJsonObject apiMappedToJsonObject;
 
   private List<String> stringValues;
   private List<Boolean> boxedBooleanValues;
@@ -96,6 +97,7 @@ public class TestDataObject {
   private List<URI> uris;
   private List<Object> objects;
   private List<NoConverterDataObject> notConvertibleDataObjects;
+  private List<ApiMappedToJsonObject> apiMappedToJsonObjects;
 
   private Set<String> stringSet;
   private Set<Boolean> boxedBooleanSet;
@@ -115,6 +117,7 @@ public class TestDataObject {
   private Set<URI> uriSet;
   private Set<Object> objectSet;
   private Set<NoConverterDataObject> notConvertibleDataObjectSet;
+  private Set<ApiMappedToJsonObject> apiMappedToJsonObjectSet;
 
   private List<String> addedStringValues = new ArrayList<>();
   private List<Boolean> addedBoxedBooleanValues = new ArrayList<>();
@@ -152,6 +155,7 @@ public class TestDataObject {
   private Map<String, URI> uriMap;
   private Map<String, Object> objectMap;
   private Map<String, NoConverterDataObject> notConvertibleDataObjectMap;
+  private Map<String, ApiMappedToJsonObject> apiMappedToJsonObjectMap;
 
   private Map<String, String> keyedStringValues = new HashMap<>();
   private Map<String, Boolean> keyedBoxedBooleanValues = new HashMap<>();
@@ -402,6 +406,15 @@ public class TestDataObject {
 
   public TestDataObject setNotConvertibleDataObject(NoConverterDataObject notConvertibleDataObject) {
     this.notConvertibleDataObject = notConvertibleDataObject;
+    return this;
+  }
+
+  public ApiMappedToJsonObject getApiMappedToJsonObject() {
+    return apiMappedToJsonObject;
+  }
+
+  public TestDataObject setApiMappedToJsonObject(ApiMappedToJsonObject apiMappedToJsonObject) {
+    this.apiMappedToJsonObject = apiMappedToJsonObject;
     return this;
   }
 

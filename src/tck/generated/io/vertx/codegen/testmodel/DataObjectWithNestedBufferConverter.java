@@ -17,7 +17,7 @@ public class DataObjectWithNestedBufferConverter {
       switch (member.getKey()) {
         case "buffer":
           if (member.getValue() instanceof String) {
-            obj.setBuffer(io.vertx.core.buffer.Buffer.buffer(java.util.Base64.getDecoder().decode((String)member.getValue())));
+            obj.setBuffer(io.vertx.core.buffer.Buffer.fromJson((String)member.getValue()));
           }
           break;
         case "buffers":
@@ -25,7 +25,7 @@ public class DataObjectWithNestedBufferConverter {
             java.util.ArrayList<io.vertx.core.buffer.Buffer> list =  new java.util.ArrayList<>();
             ((Iterable<Object>)member.getValue()).forEach( item -> {
               if (item instanceof String)
-                list.add(io.vertx.core.buffer.Buffer.buffer(java.util.Base64.getDecoder().decode((String)item)));
+                list.add(io.vertx.core.buffer.Buffer.fromJson((String)item));
             });
             obj.setBuffers(list);
           }
@@ -45,11 +45,11 @@ public class DataObjectWithNestedBufferConverter {
 
   public static void toJson(DataObjectWithNestedBuffer obj, java.util.Map<String, Object> json) {
     if (obj.getBuffer() != null) {
-      json.put("buffer", java.util.Base64.getEncoder().encodeToString(obj.getBuffer().getBytes()));
+      json.put("buffer", obj.getBuffer().toJson());
     }
     if (obj.getBuffers() != null) {
       JsonArray array = new JsonArray();
-      obj.getBuffers().forEach(item -> array.add(java.util.Base64.getEncoder().encodeToString(item.getBytes())));
+      obj.getBuffers().forEach(item -> array.add(item.toJson()));
       json.put("buffers", array);
     }
     if (obj.getNested() != null) {

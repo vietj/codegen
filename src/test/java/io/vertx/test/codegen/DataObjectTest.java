@@ -2,6 +2,7 @@ package io.vertx.test.codegen;
 
 import io.vertx.codegen.DataObjectModel;
 import io.vertx.codegen.GenException;
+import io.vertx.codegen.MapperKind;
 import io.vertx.codegen.PropertyInfo;
 import io.vertx.codegen.PropertyKind;
 import io.vertx.codegen.doc.Doc;
@@ -35,10 +36,51 @@ public class DataObjectTest {
   }
 
   @Test
+  public void testDataObjectWithFromJsonObject() throws Exception {
+    DataObjectModel model = new GeneratorHelper().generateDataObject(DataObjectWithFromJsonObject.class);
+    assertTrue(model.isDeserializable());
+    MapperInfo mapper = model.getType().getDataObject().getDeserializer();
+    assertEquals(MapperKind.STATIC_METHOD, mapper.getKind());
+    assertEquals(DataObjectWithFromJsonObject.class.getName(), mapper.getQualifiedName());
+    assertEquals("fromJson", mapper.getName());
+    assertEquals(JsonObject.class.getName(), mapper.getJsonType().toString());
+  }
+
+  @Test
+  public void testDataObjectWithFromString() throws Exception {
+    DataObjectModel model = new GeneratorHelper().generateDataObject(DataObjectWithFromString.class);
+    assertTrue(model.isDeserializable());
+    MapperInfo mapper = model.getType().getDataObject().getDeserializer();
+    assertEquals(MapperKind.STATIC_METHOD, mapper.getKind());
+    assertEquals(DataObjectWithFromString.class.getName(), mapper.getQualifiedName());
+    assertEquals("fromJson", mapper.getName());
+    assertEquals(String.class.getName(), mapper.getJsonType().toString());
+  }
+
+  @Test
   public void testDataObjectInterface() throws Exception {
     DataObjectModel model = new GeneratorHelper().generateDataObject(InterfaceDataObject.class);
     assertNotNull(model);
     assertFalse(model.isClass());
+  }
+
+  @Test
+  public void testDataObjectApi() throws Exception {
+    DataObjectModel model = new GeneratorHelper().generateDataObject(DataObjectApi.class);
+    assertNotNull(model);
+    assertFalse(model.isClass());
+    assertTrue(model.isDeserializable());
+    assertTrue(model.isSerializable());
+    MapperInfo deserializer = model.getType().getDataObject().getDeserializer();
+    assertEquals(MapperKind.STATIC_METHOD, deserializer.getKind());
+    assertEquals(DataObjectApi.class.getName(), deserializer.getQualifiedName());
+    assertEquals("fromJson", deserializer.getName());
+    assertEquals(JsonObject.class.getName(), deserializer.getJsonType().toString());
+    MapperInfo serializer = model.getType().getDataObject().getSerializer();
+    assertEquals(MapperKind.SELF, serializer.getKind());
+    assertEquals(DataObjectApi.class.getName(), serializer.getQualifiedName());
+    assertEquals(null, serializer.getName()); // toJson ?????
+    assertEquals(JsonObject.class.getName(), serializer.getJsonType().toString());
   }
 
   @Test
@@ -836,9 +878,9 @@ public class DataObjectTest {
     assertTrue(model.isPublicConverter());
 
     PropertyInfo myPojoProperty = model.getPropertyMap().get("myPojo");
-    assertEquals(ClassKind.DATA_OBJECT, myPojoProperty.getType().getKind());
-    assertTrue(((DataObjectTypeInfo)myPojoProperty.getType()).isDeserializable());
-    assertTrue(((DataObjectTypeInfo)myPojoProperty.getType()).isSerializable());
+    assertEquals(ClassKind.OTHER, myPojoProperty.getType().getKind());
+    assertTrue(((ClassTypeInfo)myPojoProperty.getType()).getDataObject().isDeserializable());
+    assertTrue(((ClassTypeInfo)myPojoProperty.getType()).getDataObject().isSerializable());
   }
 
   private void assertInvalidDataObject(Class<?> dataObjectClass) throws Exception {

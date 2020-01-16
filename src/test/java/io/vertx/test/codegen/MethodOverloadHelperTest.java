@@ -89,7 +89,7 @@ public class MethodOverloadHelperTest {
 
   @Test
   public void testAmbiguousMethodsObjectClash1() throws Exception {
-    testAmbiguousMethods(ClassKind.JSON_OBJECT, JsonObject.class.getName(), ClassKind.DATA_OBJECT, TestDataObject.class.getName());
+    testAmbiguousMethods(ClassKind.JSON_OBJECT, JsonObject.class.getName(), ClassKind.OTHER, TestDataObject.class.getName());
   }
 
   @Test
@@ -99,7 +99,7 @@ public class MethodOverloadHelperTest {
 
   @Test
   public void testAmbiguousMethodsObjectClash3() throws Exception {
-    testAmbiguousMethods(ClassKind.MAP, Map.class.getName(), ClassKind.DATA_OBJECT, TestDataObject.class.getName());
+    testAmbiguousMethods(ClassKind.MAP, Map.class.getName(), ClassKind.OTHER, TestDataObject.class.getName());
   }
 
   @Test
@@ -237,7 +237,7 @@ public class MethodOverloadHelperTest {
 
   @Test
   public void testAllClash7() throws Exception {
-    testAmbiguousMethods(ClassKind.OBJECT, TestEnum.class.getName(), ClassKind.DATA_OBJECT, TestDataObject.class.getName());
+    testAmbiguousMethods(ClassKind.OBJECT, TestEnum.class.getName(), ClassKind.OTHER, TestDataObject.class.getName());
   }
 
   @Test

@@ -17,7 +17,7 @@ public class DataObjectWithBufferConverter {
       switch (member.getKey()) {
         case "buffer":
           if (member.getValue() instanceof String) {
-            obj.setBuffer(io.vertx.core.buffer.Buffer.buffer(java.util.Base64.getDecoder().decode((String)member.getValue())));
+            obj.setBuffer(io.vertx.core.buffer.Buffer.fromJson((String)member.getValue()));
           }
           break;
       }
@@ -30,7 +30,7 @@ public class DataObjectWithBufferConverter {
 
   public static void toJson(DataObjectWithBuffer obj, java.util.Map<String, Object> json) {
     if (obj.getBuffer() != null) {
-      json.put("buffer", java.util.Base64.getEncoder().encodeToString(obj.getBuffer().getBytes()));
+      json.put("buffer", obj.getBuffer().toJson());
     }
   }
 }

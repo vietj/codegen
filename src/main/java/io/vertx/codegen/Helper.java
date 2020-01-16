@@ -677,17 +677,6 @@ public class Helper {
     return method;
   }
 
-  public static boolean isDataObjectAnnotatedSerializable(Elements elementUtils, TypeElement dataObjectElt) {
-    return
-      elementUtils.getAllMembers(dataObjectElt)
-      .stream()
-      .flatMap(Helper.FILTER_METHOD)
-      .anyMatch(exeElt ->
-        exeElt.getSimpleName().toString().equals("toJson") &&
-          exeElt.getReturnType().toString().equals("io.vertx.core.json.JsonObject")
-      );
-  }
-
   public static boolean isConcreteClass(TypeElement element) {
     return element.getKind() == ElementKind.CLASS && !element.getModifiers().contains(Modifier.ABSTRACT);
   }
@@ -695,21 +684,6 @@ public class Helper {
   public static boolean isAbstractClassOrInterface(TypeElement element) {
     return element.getKind().isInterface() ||
       (element.getKind() == ElementKind.CLASS && element.getModifiers().contains(Modifier.ABSTRACT));
-  }
-
-  public static boolean isDataObjectAnnotatedDeserializable(Elements elementUtils, Types typeUtils, TypeElement dataObjectElt) {
-    return
-      isConcreteClass(dataObjectElt) &&
-        elementUtils
-          .getAllMembers(dataObjectElt)
-          .stream()
-          .filter(e -> e.getKind() == ElementKind.CONSTRUCTOR)
-          .map(e -> (ExecutableElement)e)
-          .anyMatch(constructor ->
-            constructor.getParameters().size() == 1 &&
-              constructor.getModifiers().contains(Modifier.PUBLIC) &&
-              constructor.getParameters().get(0).asType().toString().equals("io.vertx.core.json.JsonObject")
-          );
   }
 
   /**

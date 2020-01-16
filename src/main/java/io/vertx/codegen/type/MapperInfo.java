@@ -4,7 +4,7 @@ import io.vertx.codegen.MapperKind;
 
 public class MapperInfo {
 
-  private TypeInfo targetType;
+  private TypeInfo jsonType;
   private String qualifiedName;
   private String name;
   private MapperKind kind;
@@ -12,12 +12,12 @@ public class MapperInfo {
   public MapperInfo() {
   }
 
-  public TypeInfo getTargetType() {
-    return targetType;
+  public TypeInfo getJsonType() {
+    return jsonType;
   }
 
-  public void setTargetType(TypeInfo targetType) {
-    this.targetType = targetType;
+  public void setJsonType(TypeInfo jsonType) {
+    this.jsonType = jsonType;
   }
 
   public String getQualifiedName() {

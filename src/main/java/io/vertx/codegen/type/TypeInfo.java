@@ -103,6 +103,13 @@ public abstract class TypeInfo {
   }
 
   /**
+   * @return the {@link DataObjectInfo} when this type can be adapted to a data object otherwise {@code null}
+   */
+  public DataObjectInfo getDataObject() {
+    return null;
+  }
+
+  /**
    * @return true if the type <i>void</i>
    */
   public boolean isVoid() {

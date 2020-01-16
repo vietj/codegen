@@ -91,7 +91,7 @@ public class TestDataObjectConverter {
           if (member.getValue() instanceof JsonArray) {
             ((Iterable<Object>)member.getValue()).forEach( item -> {
               if (item instanceof String)
-                obj.addAddedBuffer(io.vertx.core.buffer.Buffer.buffer(java.util.Base64.getDecoder().decode((String)item)));
+                obj.addAddedBuffer(io.vertx.core.buffer.Buffer.fromJson((String)item));
             });
           }
           break;
@@ -184,6 +184,11 @@ public class TestDataObjectConverter {
                 list.add(new io.vertx.test.codegen.converter.AggregatedDataObject((JsonObject)item));
             });
             obj.setAggregatedDataObjects(list);
+          }
+          break;
+        case "apiMappedToJsonObject":
+          if (member.getValue() instanceof JsonObject) {
+            obj.setApiMappedToJsonObject(io.vertx.test.codegen.converter.ApiMappedToJsonObject.fromJson((JsonObject)member.getValue()));
           }
           break;
         case "booleanValue":
@@ -473,7 +478,7 @@ public class TestDataObjectConverter {
           break;
         case "buffer":
           if (member.getValue() instanceof String) {
-            obj.setBuffer(io.vertx.core.buffer.Buffer.buffer(java.util.Base64.getDecoder().decode((String)member.getValue())));
+            obj.setBuffer(io.vertx.core.buffer.Buffer.fromJson((String)member.getValue()));
           }
           break;
         case "bufferMap":
@@ -481,7 +486,7 @@ public class TestDataObjectConverter {
             java.util.Map<String, io.vertx.core.buffer.Buffer> map = new java.util.LinkedHashMap<>();
             ((Iterable<java.util.Map.Entry<String, Object>>)member.getValue()).forEach(entry -> {
               if (entry.getValue() instanceof String)
-                map.put(entry.getKey(), io.vertx.core.buffer.Buffer.buffer(java.util.Base64.getDecoder().decode((String)entry.getValue())));
+                map.put(entry.getKey(), io.vertx.core.buffer.Buffer.fromJson((String)entry.getValue()));
             });
             obj.setBufferMap(map);
           }
@@ -491,7 +496,7 @@ public class TestDataObjectConverter {
             java.util.LinkedHashSet<io.vertx.core.buffer.Buffer> list =  new java.util.LinkedHashSet<>();
             ((Iterable<Object>)member.getValue()).forEach( item -> {
               if (item instanceof String)
-                list.add(io.vertx.core.buffer.Buffer.buffer(java.util.Base64.getDecoder().decode((String)item)));
+                list.add(io.vertx.core.buffer.Buffer.fromJson((String)item));
             });
             obj.setBufferSet(list);
           }
@@ -501,7 +506,7 @@ public class TestDataObjectConverter {
             java.util.ArrayList<io.vertx.core.buffer.Buffer> list =  new java.util.ArrayList<>();
             ((Iterable<Object>)member.getValue()).forEach( item -> {
               if (item instanceof String)
-                list.add(io.vertx.core.buffer.Buffer.buffer(java.util.Base64.getDecoder().decode((String)item)));
+                list.add(io.vertx.core.buffer.Buffer.fromJson((String)item));
             });
             obj.setBuffers(list);
           }
@@ -739,7 +744,7 @@ public class TestDataObjectConverter {
           if (member.getValue() instanceof JsonObject) {
             ((Iterable<java.util.Map.Entry<String, Object>>)member.getValue()).forEach(entry -> {
               if (entry.getValue() instanceof String)
-                obj.addKeyedBufferValue(entry.getKey(), io.vertx.core.buffer.Buffer.buffer(java.util.Base64.getDecoder().decode((String)entry.getValue())));
+                obj.addKeyedBufferValue(entry.getKey(), io.vertx.core.buffer.Buffer.fromJson((String)entry.getValue()));
             });
           }
           break;
@@ -1008,7 +1013,7 @@ public class TestDataObjectConverter {
     }
     if (obj.getAddedBuffers() != null) {
       JsonArray array = new JsonArray();
-      obj.getAddedBuffers().forEach(item -> array.add(java.util.Base64.getEncoder().encodeToString(item.getBytes())));
+      obj.getAddedBuffers().forEach(item -> array.add(item.toJson()));
       json.put("addedBuffers", array);
     }
     if (obj.getAddedDateTimes() != null) {
@@ -1063,6 +1068,9 @@ public class TestDataObjectConverter {
       JsonArray array = new JsonArray();
       obj.getAggregatedDataObjects().forEach(item -> array.add(item.toJson()));
       json.put("aggregatedDataObjects", array);
+    }
+    if (obj.getApiMappedToJsonObject() != null) {
+      json.put("apiMappedToJsonObject", obj.getApiMappedToJsonObject().toJson());
     }
     json.put("booleanValue", obj.isBooleanValue());
     if (obj.getBoxedBooleanSet() != null) {
@@ -1210,21 +1218,21 @@ public class TestDataObjectConverter {
       json.put("boxedShortValues", array);
     }
     if (obj.getBuffer() != null) {
-      json.put("buffer", java.util.Base64.getEncoder().encodeToString(obj.getBuffer().getBytes()));
+      json.put("buffer", obj.getBuffer().toJson());
     }
     if (obj.getBufferMap() != null) {
       JsonObject map = new JsonObject();
-      obj.getBufferMap().forEach((key, value) -> map.put(key, java.util.Base64.getEncoder().encodeToString(value.getBytes())));
+      obj.getBufferMap().forEach((key, value) -> map.put(key, value.toJson()));
       json.put("bufferMap", map);
     }
     if (obj.getBufferSet() != null) {
       JsonArray array = new JsonArray();
-      obj.getBufferSet().forEach(item -> array.add(java.util.Base64.getEncoder().encodeToString(item.getBytes())));
+      obj.getBufferSet().forEach(item -> array.add(item.toJson()));
       json.put("bufferSet", array);
     }
     if (obj.getBuffers() != null) {
       JsonArray array = new JsonArray();
-      obj.getBuffers().forEach(item -> array.add(java.util.Base64.getEncoder().encodeToString(item.getBytes())));
+      obj.getBuffers().forEach(item -> array.add(item.toJson()));
       json.put("buffers", array);
     }
     json.put("byteValue", obj.getByteValue());
@@ -1346,7 +1354,7 @@ public class TestDataObjectConverter {
     }
     if (obj.getKeyedBufferValues() != null) {
       JsonObject map = new JsonObject();
-      obj.getKeyedBufferValues().forEach((key, value) -> map.put(key, java.util.Base64.getEncoder().encodeToString(value.getBytes())));
+      obj.getKeyedBufferValues().forEach((key, value) -> map.put(key, value.toJson()));
       json.put("keyedBufferValues", map);
     }
     if (obj.getKeyedDataObjectValues() != null) {

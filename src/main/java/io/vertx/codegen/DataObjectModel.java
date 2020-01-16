@@ -53,7 +53,7 @@ public class DataObjectModel implements Model {
   private boolean deprecated;
   private Text deprecatedDesc;
   private ClassTypeInfo superType;
-  private DataObjectTypeInfo type;
+  private ClassTypeInfo type;
   private Doc doc;
   private boolean hasToJsonMethod;
   private boolean hasDecodeStaticMethod;
@@ -84,7 +84,7 @@ public class DataObjectModel implements Model {
     return type.getName();
   }
 
-  public DataObjectTypeInfo getType() {
+  public ClassTypeInfo getType() {
     return type;
   }
 
@@ -145,9 +145,9 @@ public class DataObjectModel implements Model {
     return publicConverter;
   }
 
-  public boolean isSerializable() { return type.isSerializable(); }
+  public boolean isSerializable() { return type.getDataObject().isSerializable(); }
 
-  public boolean isDeserializable() { return type.isDeserializable(); }
+  public boolean isDeserializable() { return type.getDataObject().isDeserializable(); }
 
   public boolean hasToJsonMethod() { return hasToJsonMethod; }
 
@@ -222,7 +222,7 @@ public class DataObjectModel implements Model {
     this.isClass = modelElt.getKind() == ElementKind.CLASS;
     this.concrete = isClass && !modelElt.getModifiers().contains(Modifier.ABSTRACT);
     try {
-      this.type = (DataObjectTypeInfo) typeFactory.create(modelElt.asType());
+      this.type = (ClassTypeInfo) typeFactory.create(modelElt.asType());
     } catch (ClassCastException e) {
       throw new GenException(modelElt, "Data object must be a plain java class with no type parameters");
     }
@@ -521,12 +521,12 @@ public class DataObjectModel implements Model {
       case ENUM:
         jsonifiable = true;
         break;
-      case DATA_OBJECT:
-        jsonifiable = ((DataObjectTypeInfo)propType).isSerializable();
-        break;
       case OTHER:
         if (propType.getName().equals(Instant.class.getName())) {
           jsonifiable = true;
+          break;
+        } else if (propType.getDataObject() != null) {
+          jsonifiable = propType.getDataObject().isSerializable();
           break;
         }
         return;

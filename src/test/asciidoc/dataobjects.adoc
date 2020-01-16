@@ -14,6 +14,21 @@
 |[[value]]`@value`|`String`|-
 |===
 
+[[ApiMappedToJsonObject]]
+== ApiMappedToJsonObject
+
+++++
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[firstName]]`@firstName`|`String`|-
+|[[lastName]]`@lastName`|`String`|-
+|===
+
 [[ChildInheritingDataObject]]
 == ChildInheritingDataObject
 
@@ -118,7 +133,6 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[addedAggregatedDataObjects]]`@addedAggregatedDataObjects`|`Array of link:dataobjects.html#AggregatedDataObject[AggregatedDataObject]`|-
 |[[addedBoxedBooleanValues]]`@addedBoxedBooleanValues`|`Array of Boolean`|-
 |[[addedBoxedByteValues]]`@addedBoxedByteValues`|`Array of Number (Byte)`|-
 |[[addedBoxedCharValues]]`@addedBoxedCharValues`|`Array of Char`|-
@@ -128,16 +142,10 @@
 |[[addedBoxedLongValues]]`@addedBoxedLongValues`|`Array of Number (Long)`|-
 |[[addedBoxedShortValues]]`@addedBoxedShortValues`|`Array of Number (Short)`|-
 |[[addedBuffers]]`@addedBuffers`|`Array of Buffer`|-
-|[[addedDateTimes]]`@addedDateTimes`|`Array of link:dataobjects.html#ZonedDateTime[ZonedDateTime]`|-
 |[[addedHttpMethods]]`@addedHttpMethods`|`Array of link:enums.html#TimeUnit[TimeUnit]`|-
 |[[addedJsonArrays]]`@addedJsonArrays`|`Array of Json array`|-
 |[[addedJsonObjects]]`@addedJsonObjects`|`Array of Json object`|-
 |[[addedStringValues]]`@addedStringValues`|`Array of String`|-
-|[[addedUris]]`@addedUris`|`Array of link:dataobjects.html#URI[URI]`|-
-|[[aggregatedDataObject]]`@aggregatedDataObject`|`link:dataobjects.html#AggregatedDataObject[AggregatedDataObject]`|-
-|[[aggregatedDataObjectMap]]`@aggregatedDataObjectMap`|`link:dataobjects.html#AggregatedDataObject[AggregatedDataObject]`|-
-|[[aggregatedDataObjectSet]]`@aggregatedDataObjectSet`|`Array of link:dataobjects.html#AggregatedDataObject[AggregatedDataObject]`|-
-|[[aggregatedDataObjects]]`@aggregatedDataObjects`|`Array of link:dataobjects.html#AggregatedDataObject[AggregatedDataObject]`|-
 |[[booleanValue]]`@booleanValue`|`Boolean`|-
 |[[boxedBooleanSet]]`@boxedBooleanSet`|`Array of Boolean`|-
 |[[boxedBooleanValue]]`@boxedBooleanValue`|`Boolean`|-
@@ -177,10 +185,6 @@
 |[[buffers]]`@buffers`|`Array of Buffer`|-
 |[[byteValue]]`@byteValue`|`Number (byte)`|-
 |[[charValue]]`@charValue`|`Char`|-
-|[[dateTime]]`@dateTime`|`link:dataobjects.html#ZonedDateTime[ZonedDateTime]`|-
-|[[dateTimeMap]]`@dateTimeMap`|`link:dataobjects.html#ZonedDateTime[ZonedDateTime]`|-
-|[[dateTimeSet]]`@dateTimeSet`|`Array of link:dataobjects.html#ZonedDateTime[ZonedDateTime]`|-
-|[[dateTimes]]`@dateTimes`|`Array of link:dataobjects.html#ZonedDateTime[ZonedDateTime]`|-
 |[[doubleValue]]`@doubleValue`|`Number (double)`|-
 |[[floatValue]]`@floatValue`|`Number (float)`|-
 |[[httpMethod]]`@httpMethod`|`link:enums.html#TimeUnit[TimeUnit]`|-
@@ -205,26 +209,15 @@
 |[[keyedBoxedLongValues]]`@keyedBoxedLongValues`|`Number (Long)`|-
 |[[keyedBoxedShortValues]]`@keyedBoxedShortValues`|`Number (Short)`|-
 |[[keyedBufferValues]]`@keyedBufferValues`|`Buffer`|-
-|[[keyedDataObjectValues]]`@keyedDataObjectValues`|`link:dataobjects.html#AggregatedDataObject[AggregatedDataObject]`|-
-|[[keyedDateTimeValues]]`@keyedDateTimeValues`|`link:dataobjects.html#ZonedDateTime[ZonedDateTime]`|-
 |[[keyedEnumValues]]`@keyedEnumValues`|`link:enums.html#TimeUnit[TimeUnit]`|-
 |[[keyedJsonArrayValues]]`@keyedJsonArrayValues`|`Json array`|-
 |[[keyedJsonObjectValues]]`@keyedJsonObjectValues`|`Json object`|-
 |[[keyedStringValues]]`@keyedStringValues`|`String`|-
-|[[keyedUriValues]]`@keyedUriValues`|`link:dataobjects.html#URI[URI]`|-
 |[[longValue]]`@longValue`|`Number (long)`|-
-|[[notConvertibleDataObject]]`@notConvertibleDataObject`|`link:dataobjects.html#NoConverterDataObject[NoConverterDataObject]`|-
-|[[notConvertibleDataObjectMap]]`@notConvertibleDataObjectMap`|`link:dataobjects.html#NoConverterDataObject[NoConverterDataObject]`|-
-|[[notConvertibleDataObjectSet]]`@notConvertibleDataObjectSet`|`Array of link:dataobjects.html#NoConverterDataObject[NoConverterDataObject]`|-
-|[[notConvertibleDataObjects]]`@notConvertibleDataObjects`|`Array of link:dataobjects.html#NoConverterDataObject[NoConverterDataObject]`|-
 |[[shortValue]]`@shortValue`|`Number (short)`|-
 |[[stringSet]]`@stringSet`|`Array of String`|-
 |[[stringValue]]`@stringValue`|`String`|-
 |[[stringValueMap]]`@stringValueMap`|`String`|-
 |[[stringValues]]`@stringValues`|`Array of String`|-
-|[[uri]]`@uri`|`link:dataobjects.html#URI[URI]`|-
-|[[uriMap]]`@uriMap`|`link:dataobjects.html#URI[URI]`|-
-|[[uriSet]]`@uriSet`|`Array of link:dataobjects.html#URI[URI]`|-
-|[[uris]]`@uris`|`Array of link:dataobjects.html#URI[URI]`|-
 |===
 

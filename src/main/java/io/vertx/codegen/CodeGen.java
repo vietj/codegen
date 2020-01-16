@@ -3,7 +3,6 @@ package io.vertx.codegen;
 import io.vertx.codegen.annotations.Mapper;
 import io.vertx.codegen.annotations.ModuleGen;
 import io.vertx.codegen.type.ClassKind;
-import io.vertx.codegen.type.TypeInfo;
 import io.vertx.codegen.type.TypeMirrorFactory;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -93,8 +92,8 @@ public class CodeGen {
           }
           TypeMirror paramType = methElt.getParameters().get(0).asType();
           TypeMirror returnType = methElt.getReturnType();
-          ClassKind paramKind = ClassKind.getKind(paramType.toString(), false, false);
-          ClassKind returnKind = ClassKind.getKind(returnType.toString(), false, false);
+          ClassKind paramKind = ClassKind.getKind(paramType.toString(), false);
+          ClassKind returnKind = ClassKind.getKind(returnType.toString(), false);
           if (paramKind.json || paramKind.basic || paramKind == ClassKind.OBJECT) {
             tmf.addDataObjectDeserializer(methElt, returnType, paramType);
           } else if (returnKind.json || returnKind.basic || returnKind == ClassKind.OBJECT) {
@@ -111,8 +110,8 @@ public class CodeGen {
           if (typeUtils.isSubtype(blah, rawType)) {
             TypeMirror paramType = Helper.resolveTypeParameter(typeUtils, blah, parameterizedElt.getTypeParameters().get(0));
             TypeMirror returnType = Helper.resolveTypeParameter(typeUtils, blah, parameterizedElt.getTypeParameters().get(1));
-            ClassKind paramKind = ClassKind.getKind(paramType.toString(), false, false);
-            ClassKind returnKind = ClassKind.getKind(returnType.toString(), false, false);
+            ClassKind paramKind = ClassKind.getKind(paramType.toString(), false);
+            ClassKind returnKind = ClassKind.getKind(returnType.toString(), false);
             if (paramKind.json || paramKind.basic || paramKind == ClassKind.OBJECT) {
               tmf.addDataObjectDeserializer(variableElt, returnType, paramType);
             } else if (returnKind.json || returnKind.basic || returnKind == ClassKind.OBJECT) {

@@ -64,17 +64,9 @@ public class TypeReflectionFactory {
             false
           );
         } else {
-          ClassKind kind = ClassKind.getKind(fqcn, classType.getAnnotation(DataObject.class) != null, classType.getAnnotation(VertxGen.class) != null);
-          List<TypeParamInfo.Class> typeParams = new ArrayList<>();
-          int index = 0;
-          for (java.lang.reflect.TypeVariable<? extends Class<?>> var : classType.getTypeParameters()) {
-            typeParams.add(new TypeParamInfo.Class(classType.getName(), index++, var.getName()));
-          }
-          if (kind == ClassKind.API) {
-            java.lang.reflect.TypeVariable<Class<Handler>> classTypeVariable = Handler.class.getTypeParameters()[0];
-            Type handlerArg = Helper.resolveTypeParameter(type, classTypeVariable);
-            return new ApiTypeInfo(fqcn, true, typeParams, handlerArg != null ? create(handlerArg) : null, module, false, false);
-          } else if (kind == ClassKind.DATA_OBJECT) {
+
+          DataObjectInfo dataObject;
+          if (classType.getAnnotation(DataObject.class) != null) {
             boolean serializable = isDataObjectAnnotatedSerializable(classType);
             boolean deserializable = isDataObjectAnnotatedDeserializable(classType);
             MapperInfo serializer = null;
@@ -89,18 +81,23 @@ public class TypeReflectionFactory {
               deserializer.setQualifiedName(fqcn);
               deserializer.setKind(MapperKind.SELF);
             }
-            TypeInfo jsonType = create(JsonObject.class);
-            return new DataObjectTypeInfo(
-              fqcn,
-              module,
-              false,
-              typeParams,
-              serializer,
-              deserializer,
-              create(JsonObject.class)
-            );
+            dataObject = new DataObjectInfo(serializer, deserializer);
           } else {
-            return new ClassTypeInfo(kind, fqcn, module, false, typeParams);
+            dataObject = null;
+          }
+
+          ClassKind kind = ClassKind.getKind(fqcn, classType.getAnnotation(VertxGen.class) != null);
+          List<TypeParamInfo.Class> typeParams = new ArrayList<>();
+          int index = 0;
+          for (java.lang.reflect.TypeVariable<? extends Class<?>> var : classType.getTypeParameters()) {
+            typeParams.add(new TypeParamInfo.Class(classType.getName(), index++, var.getName()));
+          }
+          if (kind == ClassKind.API) {
+            java.lang.reflect.TypeVariable<Class<Handler>> classTypeVariable = Handler.class.getTypeParameters()[0];
+            Type handlerArg = Helper.resolveTypeParameter(type, classTypeVariable);
+            return new ApiTypeInfo(fqcn, true, typeParams, handlerArg != null ? create(handlerArg) : null, module, false, false, dataObject);
+          } else {
+            return new ClassTypeInfo(kind, fqcn, module, false, typeParams, dataObject);
           }
         }
       }
