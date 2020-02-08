@@ -16,8 +16,11 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
+import java.net.URL;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -123,15 +126,63 @@ public class CodeGenProcessor extends AbstractProcessor {
     return codeGenerators;
   }
 
+  private List<CodeGen.Bilto> loadJsonCodecs() {
+    List<CodeGen.Bilto> merged = new ArrayList<>();
+    try {
+      Enumeration<URL> resources = getClass().getClassLoader().getResources("META-INF/vertx/json-codecs.properties");
+      while (resources.hasMoreElements()) {
+        URL url = resources.nextElement();
+        try (InputStream is = url.openStream()) {
+          Properties tmp = new Properties();
+          tmp.load(is);
+          tmp.stringPropertyNames().forEach(name -> {
+            int idx = name.lastIndexOf('.');
+            if (idx != -1) {
+              String type = name.substring(0, idx);
+              String value = tmp.getProperty(name);
+              int idx1 = value.indexOf('#');
+              if (idx1 != -1) {
+                String className = value.substring(0, idx1);
+                String rest = value.substring(idx1 + 1);
+                int idx2 = rest.indexOf('.');
+                if (idx2 != -1) {
+                  merged.add(new CodeGen.Bilto(type, className, Arrays.asList(rest.substring(0, idx2), rest.substring(idx2 + 1))));
+                } else {
+                  merged.add(new CodeGen.Bilto(type, className, Collections.singletonList(rest)));
+                }
+              }
+            }
+          });
+        }
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return merged;
+  }
+
+  private List<CodeGen.Bilto> mappers;
+
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+
+    if (mappers == null) {
+      mappers = loadJsonCodecs();
+      System.out.println("loaded = " + mappers);
+      System.out.println("loaded = " + mappers);
+      System.out.println("loaded = " + mappers);
+      System.out.println("loaded = " + mappers);
+      System.out.println("loaded = " + mappers);
+    }
 
     // find elements annotated with @SuppressWarnings("codegen-enhanced-method")
     if (!roundEnv.processingOver()) {
       Collection<? extends Generator> codeGenerators = getCodeGenerators();
 
       if (!roundEnv.errorRaised()) {
-        CodeGen codegen = new CodeGen(processingEnv, roundEnv, getClass().getClassLoader());
+        CodeGen codegen = new CodeGen(processingEnv);
+        mappers.forEach(codegen::registerSerializer);
+        codegen.init(roundEnv, getClass().getClassLoader());
         Map<String, GeneratedFile> generatedClasses = new HashMap<>();
 
         // Generate source code

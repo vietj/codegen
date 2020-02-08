@@ -15,6 +15,7 @@ import io.vertx.test.codegen.testapi.InterfaceDataObject;
 import io.vertx.test.codegen.testdataobject.*;
 import io.vertx.test.codegen.testdataobject.imported.Imported;
 import io.vertx.test.codegen.testdataobject.jsonmapper.DataObjectWithPojoWithMapper;
+import io.vertx.test.codegen.testdataobject.jsonmapper.MyPojo;
 import org.junit.Test;
 
 import java.time.Instant;
@@ -829,7 +830,10 @@ public class DataObjectTest {
 
   @Test
   public void testDataObjectWithJsonMapper() throws Exception {
-    DataObjectModel model = new GeneratorHelper().generateDataObject(DataObjectWithPojoWithMapper.class);
+    DataObjectModel model = new GeneratorHelper()
+      .registerSerializer(MyPojo.class, DataObjectWithPojoWithMapper.class.getName(), "serializeMyPojo")
+      .registerSerializer(MyPojo.class, DataObjectWithPojoWithMapper.class.getName(), "deserializeMyPojo")
+      .generateDataObject(DataObjectWithPojoWithMapper.class);
     assertNotNull(model);
     assertTrue(model.isClass());
     assertTrue(model.getGenerateConverter());

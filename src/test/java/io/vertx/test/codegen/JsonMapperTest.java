@@ -34,7 +34,10 @@ public class JsonMapperTest extends ClassTestBase {
   @Test
   public void testJsonMapperMustHaveValidJsonType() throws Exception {
     try {
-      new GeneratorHelper().generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.illegaljsontype");
+      new GeneratorHelper()
+        .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.illegaljsontype.APIInterfaceWithZonedDateTime.class.getName(), "serialize")
+        .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.illegaljsontype.APIInterfaceWithZonedDateTime.class.getName(), "deserialize")
+        .generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.illegaljsontype");
       fail();
     } catch (GenException expected) { }
   }
@@ -44,7 +47,10 @@ public class JsonMapperTest extends ClassTestBase {
   @Test
   public void testJsonMapperMustHaveSameJsonType() throws Exception {
     try {
-      new GeneratorHelper().generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.mixedjsontypes");
+      new GeneratorHelper()
+        .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.mixedjsontypes.APIInterfaceWithZonedDateTime.class.getName(), "serializer")
+        .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.mixedjsontypes.APIInterfaceWithZonedDateTime.class.getName(), "deserializer")
+        .generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.mixedjsontypes");
       fail();
     } catch (GenException expected) { }
   }
@@ -52,7 +58,9 @@ public class JsonMapperTest extends ClassTestBase {
   @Test
   public void testFunctionMapperMustBeStatic() throws Exception {
     try {
-      new GeneratorHelper().generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.nonstaticfunctionmapper");
+      new GeneratorHelper()
+        .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.nonstaticfunctionmapper.APIInterfaceWithZonedDateTime.class.getName(), "serializer")
+        .generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.nonstaticfunctionmapper");
       fail();
     } catch (GenException expected) { }
   }
@@ -60,7 +68,9 @@ public class JsonMapperTest extends ClassTestBase {
   @Test
   public void testMethodMapperMustBeStatic() throws Exception {
     try {
-      new GeneratorHelper().generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.nonstaticmethodmapper");
+      new GeneratorHelper()
+        .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.nonstaticmethodmapper.APIInterfaceWithZonedDateTime.class.getName(), "serialize"
+        ).generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.nonstaticmethodmapper");
       fail();
     } catch (GenException expected) { }
   }
@@ -68,7 +78,9 @@ public class JsonMapperTest extends ClassTestBase {
   @Test
   public void testFunctionMapperMustBePublic() throws Exception {
     try {
-      new GeneratorHelper().generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.nonpublicfunctionmapper");
+      new GeneratorHelper()
+        .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.nonpublicfunctionmapper.APIInterfaceWithZonedDateTime.class.getName(), "serializer")
+        .generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.nonpublicfunctionmapper");
       fail();
     } catch (GenException expected) { }
   }
@@ -76,7 +88,9 @@ public class JsonMapperTest extends ClassTestBase {
   @Test
   public void testMethodMapperMustBePublic() throws Exception {
     try {
-      new GeneratorHelper().generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.nonpublicmethodmapper");
+      new GeneratorHelper()
+        .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.nonpublicmethodmapper.APIInterfaceWithZonedDateTime.class.getName(), "serialize")
+        .generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.nonpublicmethodmapper");
       fail();
     } catch (GenException expected) { }
   }
@@ -84,7 +98,9 @@ public class JsonMapperTest extends ClassTestBase {
   @Test
   public void testNoArgsMethodMapper() throws Exception {
     try {
-      new GeneratorHelper().generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.noargsmethodmapper");
+      new GeneratorHelper()
+        .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.noargsmethodmapper.APIInterfaceWithZonedDateTime.class.getName(), "deserialize")
+        .generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.noargsmethodmapper");
       fail();
     } catch (GenException expected) { }
   }
@@ -92,7 +108,9 @@ public class JsonMapperTest extends ClassTestBase {
   @Test
   public void testTooManyArgsMethodMapper() throws Exception {
     try {
-      new GeneratorHelper().generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.toomanyargsmethodmapper");
+      new GeneratorHelper()
+        .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.toomanyargsmethodmapper.APIInterfaceWithZonedDateTime.class.getName(), "deserialize")
+        .generateModule(ModuleTest.class.getClassLoader(), "io.vertx.test.codegen.testjsonmapper.toomanyargsmethodmapper");
       fail();
     } catch (GenException expected) { }
   }
@@ -102,19 +120,28 @@ public class JsonMapperTest extends ClassTestBase {
 
   @Test
   public void testMethodMapper() throws Exception {
-    ClassModel model = new GeneratorHelper().generateClass(APIInterfaceWithZonedDateTime.class);
+    ClassModel model = new GeneratorHelper()
+      .registerSerializer(ZonedDateTime.class, APIInterfaceWithZonedDateTime.class.getName(), "serialize")
+      .registerSerializer(ZonedDateTime.class, APIInterfaceWithZonedDateTime.class.getName(), "deserialize")
+      .generateClass(APIInterfaceWithZonedDateTime.class);
     testMapper(model);
   }
 
   @Test
   public void testValidFunctionMapper() throws Exception {
-    ClassModel model = new GeneratorHelper().generateClass(io.vertx.test.codegen.testjsonmapper.functionmapper.APIInterfaceWithZonedDateTime.class);
+    ClassModel model = new GeneratorHelper()
+      .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.functionmapper.APIInterfaceWithZonedDateTime.class.getName(), "serializer", "apply")
+      .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.functionmapper.APIInterfaceWithZonedDateTime.class.getName(), "deserializer", "apply")
+      .generateClass(io.vertx.test.codegen.testjsonmapper.functionmapper.APIInterfaceWithZonedDateTime.class);
     testMapper(model);
   }
 
   @Test
   public void testMixedMapper() throws Exception {
-    ClassModel model = new GeneratorHelper().generateClass(io.vertx.test.codegen.testjsonmapper.mixedmapper.APIInterfaceWithZonedDateTime.class);
+    ClassModel model = new GeneratorHelper()
+      .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.mixedmapper.APIInterfaceWithZonedDateTime.class.getName(), "serialize")
+      .registerSerializer(ZonedDateTime.class, io.vertx.test.codegen.testjsonmapper.mixedmapper.APIInterfaceWithZonedDateTime.class.getName(), "deserializer", "apply")
+      .generateClass(io.vertx.test.codegen.testjsonmapper.mixedmapper.APIInterfaceWithZonedDateTime.class);
     testMapper(model);
   }
 
@@ -134,7 +161,9 @@ public class JsonMapperTest extends ClassTestBase {
 
   @Test
   public void testValidMethodOverload() throws Exception {
-    ClassModel model = new GeneratorHelper().generateClass(io.vertx.test.codegen.testjsonmapper.interfacewithoverloads.APIInterfaceWithZonedDateTime.class);
+    ClassModel model = new GeneratorHelper()
+      .registerSerializer(ZonedDateTime.class, APIInterfaceWithZonedDateTime.class.getName(), "deserialize")
+      .generateClass(io.vertx.test.codegen.testjsonmapper.interfacewithoverloads.APIInterfaceWithZonedDateTime.class);
     assertTrue(model.getSuperTypes().isEmpty());
     assertEquals(2, model.getMethods().size());
 

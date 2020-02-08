@@ -12,7 +12,6 @@
 package io.vertx.test.codegen.converter;
 
 import io.vertx.codegen.annotations.DataObject;
-import io.vertx.codegen.annotations.Mapper;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -30,20 +29,16 @@ import java.util.function.Function;
 @DataObject(generateConverter = true)
 public class TestDataObject {
 
-  @Mapper
   public static ZonedDateTime serializeZonedDateTime(String s) {
     return ZonedDateTime.parse(s);
   }
 
-  @Mapper
   public static String deserializeZonedDateTime(ZonedDateTime s) {
     return s.toString();
   }
 
-  @Mapper
   public static Function<URI, String> uriSerializer = URI::toString;
 
-  @Mapper
   public static Function<String, URI> uriDeserializer = s -> {
     try {
       return new URI(s);

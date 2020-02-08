@@ -152,6 +152,21 @@
               </sources>
             </configuration>
           </execution>
+          <execution>
+            <id>add-test-resource</id>
+            <goals>
+              <goal>add-test-resource</goal>
+            </goals>
+            <!-- Needed for maven-processor-plugin to pick it up -->
+            <phase>generate-test-sources</phase>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>${basedir}/src/tck/resources</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
 

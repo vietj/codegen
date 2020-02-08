@@ -18,7 +18,6 @@ package io.vertx.test.codegen;
 
 import io.vertx.codegen.*;
 import io.vertx.codegen.Compiler;
-import io.vertx.codegen.annotations.Mapper;
 import io.vertx.codegen.annotations.ModuleGen;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.ProxyGen;
@@ -40,8 +39,10 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -54,6 +55,18 @@ import java.util.stream.Collectors;
 public class GeneratorHelper {
 
   DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
+
+  public GeneratorHelper registerSerializer(String type, String serializer, String... names) {
+    serializers.add(new CodeGen.Bilto(type, serializer, Arrays.asList(names)));
+    return this;
+  }
+
+  public GeneratorHelper registerSerializer(Class<?> type, String serializer, String... names) {
+    serializers.add(new CodeGen.Bilto(type.getName(), serializer, Arrays.asList(names)));
+    return this;
+  }
+
+  private final List<CodeGen.Bilto> serializers = new ArrayList<>();
 
   public PackageModel generatePackage(Class clazz, Set<Class> otherSupportedAnnotations) throws Exception {
     URL url = clazz.getClassLoader().getResource(clazz.getName().replace('.', '/') + ".java");
@@ -132,7 +145,6 @@ public class GeneratorHelper {
       this.supportedAnnotations.add(VertxGen.class.getCanonicalName());
       this.supportedAnnotations.add(DataObject.class.getCanonicalName());
       this.supportedAnnotations.add(ModuleGen.class.getCanonicalName());
-      this.supportedAnnotations.add(Mapper.class.getCanonicalName());
       this.supportedAnnotations.addAll(otherSupportedAnnotations);
     }
 
@@ -159,7 +171,9 @@ public class GeneratorHelper {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
       if (!roundEnv.processingOver()) {
-        CodeGen codegen = new CodeGen(env, roundEnv, Thread.currentThread().getContextClassLoader());
+        CodeGen codegen = new CodeGen(env);
+        serializers.forEach(codegen::registerSerializer);
+        codegen.init(roundEnv, Thread.currentThread().getContextClassLoader());
         result = f.apply(codegen);
       }
       return true;

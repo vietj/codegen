@@ -19,7 +19,6 @@ package io.vertx.codegen;
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.annotations.Mapper;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.codegen.doc.Doc;
 import io.vertx.codegen.doc.Tag;
@@ -857,9 +856,6 @@ public class ClassModel implements Model {
     if (!mods.contains(Modifier.PUBLIC)) {
       return null;
     }
-    if (modelField.getAnnotation(Mapper.class) != null) {
-      return null;
-    }
     TypeInfo type = typeFactory.create(modelField.asType());
     checkConstantType(modelField, type, modelField.asType(),allowAnyJavaType);
     Doc doc = docFactory.createDoc(modelField);
@@ -869,9 +865,6 @@ public class ClassModel implements Model {
   private MethodInfo createMethod(ExecutableElement modelMethod, boolean allowAnyJavaType) {
     Set<Modifier> mods = modelMethod.getModifiers();
     if (!mods.contains(Modifier.PUBLIC)) {
-      return null;
-    }
-    if (modelMethod.getAnnotation(Mapper.class) != null) {
       return null;
     }
 
